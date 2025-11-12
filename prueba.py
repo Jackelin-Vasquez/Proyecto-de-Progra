@@ -2198,10 +2198,9 @@ class CompanyHomePage(ctk.CTkFrame):
         """Redirige la acción al controlador del dashboard"""
         self.controller.nav_action(action)
 
-
 class ReportsPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
-        super().__init__(parent, fg_color=BG_WHITE)
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
         self.controller = controller
         self.company_name = self.controller.controller.selected_company
         self.año_seleccionado = None
@@ -2209,17 +2208,50 @@ class ReportsPage(ctk.CTkFrame):
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        # Header morado
-        self.title_header_frame = ctk.CTkFrame(self, fg_color=PURPLE_DARK, height=60, corner_radius=0)
-        self.title_header_frame.grid(row=0, column=0, columnspan=2, sticky="new", padx=0, pady=0)
-        self.title_header_frame.grid_columnconfigure(0, weight=1)
-
-        self.title_label = ctk.CTkLabel(self.title_header_frame, text=f"REPORTES - {self.company_name}",
-                                        font=ctk.CTkFont(size=20, weight="bold"),
-                                        text_color="white")
-        self.title_label.grid(row=0, column=0, padx=20, pady=15, sticky="w")
-
+        self._setup_header()
         self._setup_reports()
+
+    def _setup_header(self):
+        header_frame = ctk.CTkFrame(self, fg_color=COLOR_MORADO_OSCURO, corner_radius=0, height=60)
+        header_frame.grid(row=0, column=0, sticky="new")
+        header_frame.grid_columnconfigure(0, weight=1)
+        header_frame.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(header_frame, text=f"REPORTES - {self.company_name}",
+                     font=ctk.CTkFont(size=18, weight="bold"), text_color="white").grid(
+            row=0, column=0, padx=20, pady=10, sticky="w")
+
+        # Selector de año
+        año_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        año_frame.grid(row=0, column=1, padx=20, sticky="e")
+
+        ctk.CTkLabel(año_frame, text="Año:",
+                     font=ctk.CTkFont(size=12),
+                     text_color="white").pack(side="left", padx=(0, 5))
+
+        self.año_combobox = ctk.CTkComboBox(año_frame,
+                                            values=["2025", "2026", "2027"],
+                                            width=80,
+                                            command=self.cambiar_año)
+        self.año_combobox.pack(side="left", padx=(0, 10))
+        self.año_combobox.set("2025")  # Año por defecto
+        self.año_seleccionado = 2024
+
+        ctk.CTkButton(header_frame, text="Regresar",
+                      command=lambda: self.controller.nav_action("REGRESAR A EMPRESA"),
+                      width=100, height=35, corner_radius=10,
+                      fg_color="white", hover_color="#cccccc", text_color="black"
+                      ).grid(row=0, column=2, padx=20, sticky="e")
+
+    def cambiar_año(self, choice):
+        """Cambia el año seleccionado para los reportes"""
+        try:
+            self.año_seleccionado = int(choice)
+            # Refrescar el reporte actual
+            if hasattr(self, 'reporte_actual'):
+                self.show_report(self.reporte_actual)
+        except ValueError:
+            pass
 
     def _setup_reports(self):
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -2236,11 +2268,11 @@ class ReportsPage(ctk.CTkFrame):
             ctk.CTkButton(button_frame, text=report_type,
                           command=lambda rt=report_type: self.show_report(rt),
                           width=150, height=40, corner_radius=10,
-                          fg_color=PURPLE_BRIGHT,
-                          hover_color="#6A5ACD").grid(row=0, column=i, padx=5)
+                          fg_color=COLOR_BOTON_PRIMARIO,
+                          hover_color="#5D3FD3").grid(row=0, column=i, padx=5)
 
         # Área de reportes
-        self.report_frame = ctk.CTkScrollableFrame(main_frame, fg_color=BG_WHITE)
+        self.report_frame = ctk.CTkScrollableFrame(main_frame, fg_color=COLOR_CONTENIDO_BOX)
         self.report_frame.grid(row=1, column=0, sticky="nsew")
 
         # Mostrar reporte por defecto
@@ -2253,7 +2285,7 @@ class ReportsPage(ctk.CTkFrame):
 
         self.reporte_actual = report_type
 
-        ctk.CTkLabel(self.report_frame, text=f"{report_type}",
+        ctk.CTkLabel(self.report_frame, text=f"{report_type} - Año {self.año_seleccionado}",
                      font=ctk.CTkFont(size=20, weight="bold"),
                      text_color="black").pack(pady=20)
 
@@ -2271,7 +2303,7 @@ class ReportsPage(ctk.CTkFrame):
 
             if not self.report_frame.winfo_children():
                 ctk.CTkLabel(self.report_frame, text="No hay datos disponibles",
-                             font=ctk.CTkFont(size=16), text_color=TEXT_DARK_GRAY).pack(pady=50)
+                             font=ctk.CTkFont(size=16), text_color=COLOR_TEXTO_ETIQUETA).pack(pady=50)
 
         except Exception as e:
             ctk.CTkLabel(self.report_frame, text=f"Error al cargar reporte: {str(e)}",
@@ -2317,11 +2349,11 @@ class ReportsPage(ctk.CTkFrame):
 
     def mostrar_facturas_canceladas(self):
         try:
-            data = Proyecto_2.Reporte.facturas_canceladas_mes(self.company_name, 2024)
+            data = Proyecto_2.Reporte.facturas_canceladas_mes(self.company_name, self.año_seleccionado)
 
             if not data:
                 ctk.CTkLabel(self.report_frame, text="No hay facturas canceladas para este período",
-                             font=ctk.CTkFont(size=14), text_color=TEXT_DARK_GRAY).pack(pady=20)
+                             font=ctk.CTkFont(size=14), text_color=COLOR_TEXTO_ETIQUETA).pack(pady=20)
                 return
 
             # Crear tabla
@@ -2333,7 +2365,7 @@ class ReportsPage(ctk.CTkFrame):
             for i, header in enumerate(headers):
                 ctk.CTkLabel(table_frame, text=header,
                              font=ctk.CTkFont(size=14, weight="bold"),
-                             text_color="black").grid(row=0, column=i, padx=10, pady=5, sticky="w")
+                             text_color=COLOR_TEXTO_ETIQUETA).grid(row=0, column=i, padx=10, pady=5, sticky="w")
 
             # Datos
             nombres_meses = {
@@ -2360,12 +2392,12 @@ class ReportsPage(ctk.CTkFrame):
             # Total cancelado
             ctk.CTkLabel(table_frame, text="TOTAL CANCELADO:",
                          font=ctk.CTkFont(size=14, weight="bold"),
-                         text_color="black").grid(row=len(data) + 1, column=1, padx=10, pady=10,
-                                                  sticky="e")
+                         text_color=COLOR_TEXTO_ETIQUETA).grid(row=len(data) + 1, column=1, padx=10, pady=10,
+                                                               sticky="e")
             ctk.CTkLabel(table_frame, text=f"Q {total_cancelado:.2f}",
                          font=ctk.CTkFont(size=14, weight="bold"),
-                         text_color="black").grid(row=len(data) + 1, column=2, padx=10, pady=10,
-                                                  sticky="w")
+                         text_color=COLOR_TEXTO_ETIQUETA).grid(row=len(data) + 1, column=2, padx=10, pady=10,
+                                                               sticky="w")
 
         except Exception as e:
             ctk.CTkLabel(self.report_frame, text=f"Error: {str(e)}",
@@ -2376,7 +2408,7 @@ class ReportsPage(ctk.CTkFrame):
             data = Proyecto_2.Reporte.total_ventas_empresa(self.company_name)
             if not data:
                 ctk.CTkLabel(self.report_frame, text="No hay datos de ventas", font=ctk.CTkFont(size=14),
-                             text_color=TEXT_DARK_GRAY).pack(pady=20)
+                             text_color=COLOR_TEXTO_ETIQUETA).pack(pady=20)
                 return
 
             info_frame = ctk.CTkFrame(self.report_frame, fg_color=COLOR_FILA_CLARA, corner_radius=10)
@@ -2393,7 +2425,7 @@ class ReportsPage(ctk.CTkFrame):
 
                 ctk.CTkLabel(info_frame, text=f"Ventas Totales: Q {float(item['total']):.2f}",
                              font=ctk.CTkFont(size=16, weight="bold"),
-                             text_color=PURPLE_DARK).pack(pady=10)
+                             text_color=COLOR_MORADO_OSCURO).pack(pady=10)
 
         except Exception as e:
             ctk.CTkLabel(self.report_frame, text=f"Error: {str(e)}", font=ctk.CTkFont(size=14), text_color="red").pack(
@@ -2402,11 +2434,11 @@ class ReportsPage(ctk.CTkFrame):
     def mostrar_ventas_por_mes(self):
         """Muestra reporte detallado de ventas por mes"""
         try:
-            data = Proyecto_2.Reporte.facturas_por_mes(self.company_name, 2024)
+            data = Proyecto_2.Reporte.facturas_por_mes(self.company_name, self.año_seleccionado)
 
             if not data:
                 ctk.CTkLabel(self.report_frame, text="No hay datos de ventas por mes", font=ctk.CTkFont(size=14),
-                             text_color=TEXT_DARK_GRAY).pack(pady=20)
+                             text_color=COLOR_TEXTO_ETIQUETA).pack(pady=20)
                 return
 
             # Crear tabla
@@ -2416,7 +2448,7 @@ class ReportsPage(ctk.CTkFrame):
             for i, header in enumerate(headers):
                 ctk.CTkLabel(table_frame, text=header,
                              font=ctk.CTkFont(size=14, weight="bold"),
-                             text_color="black").grid(row=0, column=i, padx=10, pady=5, sticky="w")
+                             text_color=COLOR_TEXTO_ETIQUETA).grid(row=0, column=i, padx=10, pady=5, sticky="w")
 
             # Datos
             nombres_meses = {
@@ -2450,21 +2482,21 @@ class ReportsPage(ctk.CTkFrame):
             resumen_frame.pack(fill="x", padx=50, pady=20)
 
             ctk.CTkLabel(resumen_frame, text="RESUMEN ANUAL", font=ctk.CTkFont(size=16, weight="bold"),
-                         text_color="black").pack(pady=10)
+                         text_color=COLOR_TEXTO_TABLA).pack(pady=10)
 
             ctk.CTkLabel(resumen_frame, text=f"Total Facturas: {facturas_totales}", font=ctk.CTkFont(size=14),
-                         text_color="black").pack(pady=2)
+                         text_color=COLOR_TEXTO_TABLA).pack(pady=2)
 
             ctk.CTkLabel(resumen_frame, text=f"Ventas Totales: Q {ventas_totales:.2f}",
                          font=ctk.CTkFont(size=14),
-                         text_color="black").pack(pady=2)
+                         text_color=COLOR_TEXTO_TABLA).pack(pady=2)
         except Exception as e:
             ctk.CTkLabel(self.report_frame, text=f"Error: {str(e)}",
                          font=ctk.CTkFont(size=14), text_color="red").pack(pady=20)
 
     def mostrar_sin_datos(self):
         ctk.CTkLabel(self.report_frame, text="No hay datos disponibles",
-                     font=ctk.CTkFont(size=16), text_color=TEXT_DARK_GRAY).pack(pady=50)
+                     font=ctk.CTkFont(size=16), text_color=COLOR_TEXTO_ETIQUETA).pack(pady=50)
 
     def mostrar_error(self, mensaje):
         ctk.CTkLabel(self.report_frame, text=f"Error: {mensaje}",
