@@ -2457,7 +2457,7 @@ class CreateInvoicePage(ctk.CTkFrame):
                      font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
                      justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
 
-        ctk.CTkLabel(left_frame, text=f"Aquí puedes registrar una nueva factura de {company_name}.",
+        ctk.CTkLabel(left_frame, text=f"Aquí puedes registrar una nueva  de factura{company_name}.",
                      font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=2,
                                                                                                           column=0,
                                                                                                           sticky="nw")
