@@ -394,7 +394,6 @@ class CreateUserPage(ctk.CTkFrame):
             messagebox.showerror("Error", "No se pudo crear el usuario")
 
 
-
 class CreateClientPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
@@ -502,7 +501,8 @@ class CreateClientPage(ctk.CTkFrame):
             # Si nombre_negocio está vacío, se pasa como string vacío (será NULL en BD)
             nombre_negocio_value = nombre_negocio if nombre_negocio else ""
 
-            cliente = Proyecto_2.Cliente(nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio_value)
+            cliente = Proyecto_2.Cliente(nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento,
+                                         nombre_negocio_value)
             success = cliente.guardar()
 
             if success:
@@ -640,7 +640,7 @@ class CreateCompanyPage(ctk.CTkFrame):
 
         ctk.CTkLabel(self.company_form_frame, text="CREAR EMPRESA",
                      font=ctk.CTkFont(size=24, weight="bold"), text_color="white").pack(pady=(20, 10))
-        #esto mostrara la infromación del cliente que ha sido seleccionado
+        # esto mostrara la infromación del cliente que ha sido seleccionado
         nombre_negocio = cliente['nombre_negocio'] if cliente['nombre_negocio'] else "Sin negocio registrado"
         client_info = f"Cliente: {cliente['nombre']}\nNIT: {cliente['nit']}\nNegocio registrado: {nombre_negocio}"
         ctk.CTkLabel(self.company_form_frame, text=client_info,
@@ -802,7 +802,7 @@ class TableBasePage(ctk.CTkFrame):
             formatted_inventory = []
             for item in inventario:
                 formatted_inventory.append({
-                    "ID_Producto": item.get('producto', ''),
+                    "ID_Producto": item.get('id', ''),
                     "Nombre": item.get('producto', ''),
                     "Cantidad": item.get('cantidad', 0),
                     "Precio": item.get('precio', 0)
@@ -1068,7 +1068,9 @@ class TableBasePage(ctk.CTkFrame):
             text_color = COLOR_TEXTO_TABLA if r % 2 == 0 else "white"
 
             ctk.CTkLabel(table_container, text=item[id_key], fg_color=bg_color, text_color=text_color,
-                         font=row_font, height=60, corner_radius=0, anchor="w", padx=15).grid(row=row_index, column=0,sticky="nsew",padx=(1, 1), pady=(1, 1))
+                         font=row_font, height=60, corner_radius=0, anchor="w", padx=15).grid(row=row_index, column=0,
+                                                                                              sticky="nsew",
+                                                                                              padx=(1, 1), pady=(1, 1))
             current_col = 1
             for key in display_keys:
                 value = item.get(key)
@@ -1109,7 +1111,8 @@ class BusquedaAvanzadaDialog(ctk.CTkToplevel):
         main_frame = ctk.CTkFrame(self, fg_color=COLOR_FORM_FRAME, corner_radius=15)
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        ctk.CTkLabel(main_frame, text="BÚSQUEDA AVANZADA",font=ctk.CTkFont(size=16, weight="bold"),text_color="white").pack(pady=(15, 20))
+        ctk.CTkLabel(main_frame, text="BÚSQUEDA AVANZADA", font=ctk.CTkFont(size=16, weight="bold"),
+                     text_color="white").pack(pady=(15, 20))
 
         ctk.CTkLabel(main_frame, text="Método de búsqueda:",
                      font=ctk.CTkFont(size=12), text_color="white").pack(anchor="w", padx=20)
@@ -1133,7 +1136,8 @@ class BusquedaAvanzadaDialog(ctk.CTkToplevel):
         else:
             campos = ["Nombre"]
 
-        self.campo_combobox = ctk.CTkComboBox(main_frame, values=campos,state="readonly",fg_color=COLOR_CAMPO_CLARO,text_color="white")
+        self.campo_combobox = ctk.CTkComboBox(main_frame, values=campos, state="readonly", fg_color=COLOR_CAMPO_CLARO,
+                                              text_color="white")
         self.campo_combobox.pack(fill="x", padx=20, pady=5)
         self.campo_combobox.set(campos[0])
         button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
@@ -1143,7 +1147,8 @@ class BusquedaAvanzadaDialog(ctk.CTkToplevel):
                       fg_color=COLOR_BOTON_ELIMINAR,
                       hover_color="#8B0000").pack(side="left", padx=(0, 10))
 
-        ctk.CTkButton(button_frame, text="Aplicar", command=self.aplicar_busqueda,width=100, height=35, corner_radius=10,fg_color=COLOR_BOTON_BUSQUEDA,hover_color="#3CB371").pack(side="right")
+        ctk.CTkButton(button_frame, text="Aplicar", command=self.aplicar_busqueda, width=100, height=35,
+                      corner_radius=10, fg_color=COLOR_BOTON_BUSQUEDA, hover_color="#3CB371").pack(side="right")
 
     def aplicar_busqueda(self):
         self.metodo_seleccionado = self.metodo_var.get()
@@ -1171,12 +1176,11 @@ class ModifyUsersPage(TableBasePage):
         self.wait_window(dialog)
 
         if dialog.result:
-            # Aquí puedes procesar los cambios
-            print("Cambios guardados:", dialog.result)
             # Recargar la tabla para reflejar cambios
             self.datos_originales = self._load_users_from_db()
             self.datos_filtrados = self.datos_originales.copy()
             self._actualizar_tabla()
+
 
 class EditUserDialog(ctk.CTkToplevel):
     def __init__(self, parent, user_data):
@@ -1236,22 +1240,25 @@ class EditUserDialog(ctk.CTkToplevel):
                       hover_color="#5D3FD3").pack(side="right")
 
     def _load_current_user_data(self):
+        """Carga los datos actuales del usuario en los campos"""
+        # Mapeo de campos del formulario a campos de la base de datos
         field_mapping = {
             'DPI': 'dpi',
-            'NOMBRE_COMPLETO': 'Nombre',
-            'CORREO': '',
-            'PUESTO': 'Puesto',
-            'USUARIO': 'Usuario',
-            'CONTRASEÑA': '',
-            'ROL': 'ROL'
+            'NOMBRE_COMPLETO': 'nombre',
+            'CORREO': 'correo',
+            'PUESTO': 'puesto',
+            'USUARIO': 'usuario',
+            'ROL': 'rol'
         }
 
-        for field_key, table_key in field_mapping.items():
-            if table_key and table_key in self.user_data:
-                self.entries[field_key].insert(0, str(self.user_data[table_key]))
+        for field_key, data_key in field_mapping.items():
+            if data_key in self.user_data:
+                # Insertar el valor actual en el campo
+                current_value = str(self.user_data[data_key]) if self.user_data[data_key] else ""
+                self.entries[field_key].insert(0, current_value)
 
     def save_changes(self):
-        """Guarda los cambios del usuario"""
+        """Guarda los cambios del usuario en la base de datos"""
         try:
             dpi = self.entries["DPI"].get().strip()
             nombre = self.entries["NOMBRE_COMPLETO"].get().strip()
@@ -1264,18 +1271,40 @@ class EditUserDialog(ctk.CTkToplevel):
             if not all([dpi, nombre, usuario, rol]):
                 messagebox.showerror("Error", "Por favor complete los campos obligatorios: DPI, Nombre, Usuario y Rol")
                 return
-            messagebox.showinfo("Éxito",f"Usuario {usuario} actualizado correctamente\n\n")
 
-            self.result = {
-                'dpi': dpi,
-                'nombre': nombre,
-                'correo': correo,
-                'puesto': puesto,
-                'usuario': usuario,
-                'contrasena': contrasena,
-                'rol': rol}
+            # Obtener el usuario actual para la actualización
+            usuario_actual = self.user_data.get('usuario', '')
 
-            self.destroy()
+            if not usuario_actual:
+                messagebox.showerror("Error", "No se pudo identificar el usuario a actualizar")
+                return
+
+            # Llamar al método de actualización
+            success = Proyecto_2.Usuario.actualizar_usuario(
+                usuario_actual=usuario_actual,
+                nuevo_dpi=dpi,
+                nuevo_nombre=nombre,
+                nuevo_correo=correo,
+                nuevo_puesto=puesto,
+                nuevo_usuario=usuario,
+                nueva_contrasena=contrasena if contrasena else None,  # Si no hay nueva contraseña, mantener la actual
+                nuevo_rol=rol
+            )
+
+            if success:
+                messagebox.showinfo("Éxito", f"Usuario {usuario} actualizado correctamente")
+                self.result = {
+                    'dpi': dpi,
+                    'nombre': nombre,
+                    'correo': correo,
+                    'puesto': puesto,
+                    'usuario': usuario,
+                    'contrasena': contrasena,
+                    'rol': rol
+                }
+                self.destroy()
+            else:
+                messagebox.showerror("Error", "No se pudo actualizar el usuario. Verifique los datos.")
 
         except Exception as e:
             messagebox.showerror("Error", f"Error al guardar cambios: {str(e)}")
@@ -1294,7 +1323,8 @@ class EditCompanyDialog(ctk.CTkToplevel):
         main_frame = ctk.CTkFrame(self, fg_color=COLOR_FORM_FRAME, corner_radius=15)
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        ctk.CTkLabel(main_frame, text="EDITAR EMPRESA",font=ctk.CTkFont(size=20, weight="bold"),text_color="white").pack(pady=(20, 30))
+        ctk.CTkLabel(main_frame, text="EDITAR EMPRESA", font=ctk.CTkFont(size=20, weight="bold"),
+                     text_color="white").pack(pady=(20, 30))
         # Campos de edición
         fields = [
             ("NOMBRE EMPRESA", "NOMBRE"),
@@ -1374,6 +1404,7 @@ class EditCompanyDialog(ctk.CTkToplevel):
         except Exception as e:
             messagebox.showerror("Error", f"Error al guardar cambios: {str(e)}")
 
+
 class DeleteUsersPage(TableBasePage):
     def __init__(self, parent, controller):
         super().__init__(
@@ -1392,8 +1423,9 @@ class DeleteUsersPage(TableBasePage):
             success = Proyecto_2.Usuario.eliminar(user['Usuario'])
             if success:
                 messagebox.showinfo("Éxito", f"Usuario {user['Nombre']} eliminado correctamente")
-                self.user_data = self._load_users_from_db()
-                self._setup_table()
+                self.datos_originales = self._load_users_from_db()
+                self.datos_filtrados = self.datos_originales.copy()
+                self._actualizar_tabla()
             else:
                 messagebox.showerror("Error", "No se pudo eliminar el usuario")
         except Exception as e:
@@ -1421,8 +1453,6 @@ class ModifyCompanyPage(TableBasePage):
         self.wait_window(dialog)
 
         if dialog.result:
-            # Aquí puedes procesar los cambios
-            print("Cambios guardados:", dialog.result)
             # Recargar la tabla para reflejar cambios
             self.datos_originales = self._load_companies_from_db()
             self.datos_filtrados = self.datos_originales.copy()
@@ -1447,14 +1477,137 @@ class DeleteCompanyPage(TableBasePage):
             success = Proyecto_2.Empresa.eliminar(company['Nombre'])
             if success:
                 messagebox.showinfo("Éxito", f"Empresa {company['Nombre']} eliminada correctamente")
-                self.company_data = self._load_companies_from_db()
-                self._setup_table()
+                self.datos_originales = self._load_companies_from_db()
+                self.datos_filtrados = self.datos_originales.copy()
+                self._actualizar_tabla()
             else:
                 messagebox.showerror("Error", "No se pudo eliminar la empresa")
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo eliminar la empresa: {e}")
 
 
+class EditInventoryDialog(ctk.CTkToplevel):
+    def __init__(self, parent, product_data, empresa_nombre):
+        super().__init__(parent)
+        self.title("Editar Producto")
+        self.geometry("500x400")
+        self.resizable(False, False)
+
+        self.product_data = product_data
+        self.empresa_nombre = empresa_nombre
+        self.result = None
+
+        main_frame = ctk.CTkFrame(self, fg_color=COLOR_FORM_FRAME, corner_radius=15)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        ctk.CTkLabel(main_frame, text="EDITAR PRODUCTO",
+                     font=ctk.CTkFont(size=20, weight="bold"),
+                     text_color="white").pack(pady=(20, 30))
+
+        # Campos de edición
+        fields = [
+            ("PRODUCTO", "PRODUCTO"),
+            ("CANTIDAD", "CANTIDAD"),
+            ("PRECIO", "PRECIO")]
+
+        self.entries = {}
+        for field_label, field_key in fields:
+            ctk.CTkLabel(main_frame, text=field_label, font=ctk.CTkFont(size=12, weight="normal"),text_color="white", anchor="w").pack(fill="x", padx=40, pady=(10, 0))
+
+            entry = ctk.CTkEntry(main_frame, placeholder_text="", height=35,corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
+            entry.pack(fill="x", padx=40, pady=(5, 10))
+            self.entries[field_key] = entry
+
+        # Cargar datos actuales del producto
+        self._load_current_product_data()
+
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(fill="x", padx=40, pady=20)
+
+        ctk.CTkButton(button_frame, text="Cancelar", command=self.destroy,width=120, height=40, corner_radius=10, fg_color=COLOR_BOTON_ELIMINAR,hover_color="#8B0000").pack(side="left", padx=(0, 10))
+
+        ctk.CTkButton(button_frame, text="Guardar Cambios",command=self.save_changes,width=120, height=40, corner_radius=10, fg_color=COLOR_MORADO_OSCURO, hover_color="#5D3FD3").pack(side="right")
+
+    def _load_current_product_data(self):
+        """Carga los datos actuales del producto en los campos"""
+        # El nombre del producto no se puede editar (es la clave primaria)
+        self.entries["PRODUCTO"].insert(0, self.product_data['Nombre'])
+        self.entries["PRODUCTO"].configure(state="disabled")  # No editable
+
+        self.entries["CANTIDAD"].insert(0, str(self.product_data['Cantidad']))
+        self.entries["PRECIO"].insert(0, str(self.product_data['Precio']))
+
+    def save_changes(self):
+        """Guarda los cambios del producto en la base de datos"""
+        try:
+            producto = self.entries["PRODUCTO"].get().strip()
+            cantidad_text = self.entries["CANTIDAD"].get().strip()
+            precio_text = self.entries["PRECIO"].get().strip()
+
+            if not all([producto, cantidad_text, precio_text]):
+                messagebox.showerror("Error", "Por favor complete todos los campos")
+                return
+
+            try:
+                cantidad = int(cantidad_text)
+                precio = float(precio_text)
+
+                if cantidad < 0:
+                    messagebox.showerror("Error", "La cantidad no puede ser negativa")
+                    return
+                if precio < 0:
+                    messagebox.showerror("Error", "El precio no puede ser negativo")
+                    return
+
+            except ValueError:
+                messagebox.showerror("Error", "Cantidad debe ser un número entero y Precio un número decimal")
+                return
+
+            # Obtener información actual del producto
+            producto_info_actual = Proyecto_2.Inventario.obtener_informacion_producto(
+                self.empresa_nombre, producto
+            )
+
+            if not producto_info_actual:
+                messagebox.showerror("Error", "No se pudo encontrar el producto en la base de datos")
+                return
+            if (int(producto_info_actual['cantidad']) == cantidad and
+                    float(producto_info_actual['precio']) == precio):
+                messagebox.showinfo("Información", "No se detectaron cambios para guardar")
+                self.destroy()
+                return
+
+            conn = None
+            cursor = None
+            try:
+                conn = Proyecto_2.BasedeDatos.conectar()
+                cursor = conn.cursor()
+
+                cursor.execute("""
+                    UPDATE inventario_general 
+                    SET cantidad = %s, precio = %s 
+                    WHERE empresa_nombre = %s AND producto = %s""",
+                               (cantidad, precio, self.empresa_nombre, producto))
+
+                conn.commit()
+
+                messagebox.showinfo("Éxito", f"Producto {producto} actualizado correctamente")
+                self.result = {
+                    'producto': producto,
+                    'cantidad': cantidad,
+                    'precio': precio
+                }
+                self.destroy()
+
+            except Exception as e:
+                messagebox.showerror("Error", f"Error al actualizar producto: {str(e)}")
+            finally:
+                if cursor:
+                    cursor.close()
+                if conn:
+                    conn.close()
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al guardar cambios: {str(e)}")
 class InventoryManagementPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
@@ -1664,7 +1817,6 @@ class InventoryManagementPage(ctk.CTkFrame):
         for widget in self.grid_slaves():
             if int(widget.grid_info()["row"]) == 2:
                 widget.destroy()
-        # Recrear la tabla
         self._setup_table()
 
     def add_inventory_action(self):
@@ -1675,6 +1827,24 @@ class InventoryManagementPage(ctk.CTkFrame):
         self.datos_originales = self._load_inventory_from_db()
         self.datos_filtrados = self.datos_originales.copy()
         self._actualizar_tabla()
+
+    def edit_inventory_action(self, item):
+        """Abre diálogo para editar producto del inventario"""
+        try:
+            empresa_nombre = self.controller.controller.selected_company
+            if not empresa_nombre:
+                messagebox.showerror("Error", "No hay empresa seleccionada")
+                return
+            dialog = EditInventoryDialog(self, item, empresa_nombre)
+            self.wait_window(dialog)
+
+            if dialog.result:
+                self.datos_originales = self._load_inventory_from_db()
+                self.datos_filtrados = self.datos_originales.copy()
+                self._actualizar_tabla()
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al editar producto: {str(e)}")
 
     def delete_inventory_action(self, item):
         """Elimina un ítem del inventario"""
@@ -1792,13 +1962,19 @@ class AddInventoryDialog(ctk.CTkToplevel):
             return
 
         try:
-            inventario_existente = Proyecto_2.Inventario.listar(empresa_nombre)
-            for item in inventario_existente:
-                if item['producto'].lower() == producto.lower():
-                    messagebox.showerror("Error", f"El producto '{producto}' ya existe en el inventario")
-                    return
+            # Convertir a números
+            cantidad_int = int(cantidad)
+            precio_float = float(precio)
 
-            inventario = Proyecto_2.Inventario(empresa_nombre, producto, int(cantidad), float(precio))
+            if cantidad_int <= 0:
+                messagebox.showerror("Error", "La cantidad debe ser mayor a 0")
+                return
+            if precio_float <= 0:
+                messagebox.showerror("Error", "El precio debe ser mayor a 0")
+                return
+
+            # Crear el objeto inventario y guardar
+            inventario = Proyecto_2.Inventario(empresa_nombre, producto, cantidad_int, precio_float)
             success = inventario.guardar()
 
             if success:
@@ -1806,12 +1982,11 @@ class AddInventoryDialog(ctk.CTkToplevel):
                 self.destroy()
             else:
                 messagebox.showerror("Error", "No se pudo agregar el producto")
+
         except ValueError:
-            messagebox.showerror("Error", "Cantidad y Precio deben ser números válidos")
+            messagebox.showerror("Error", "Cantidad debe ser un número entero y Precio un número decimal")
         except Exception as e:
             messagebox.showerror("Error", f"Error al agregar producto: {str(e)}")
-
-
 class ViewCompaniesPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
@@ -1847,7 +2022,11 @@ class ViewCompaniesPage(ctk.CTkFrame):
                      fg_color="white", text_color="black",
                      font=ctk.CTkFont(size=14)
                      ).grid(row=0, column=1, padx=20, sticky="e")
-        ctk.CTkLabel(self, text="EMPRESAS", font=ctk.CTkFont(size=30, weight="bold"), text_color="white").grid(row=1,column=0,pady=(40,30),sticky="n")
+        ctk.CTkLabel(self, text="EMPRESAS", font=ctk.CTkFont(size=30, weight="bold"), text_color="white").grid(row=1,
+                                                                                                               column=0,
+                                                                                                               pady=(40,
+                                                                                                                     30),
+                                                                                                               sticky="n")
 
     def _setup_company_list(self):
         list_frame = ctk.CTkFrame(self, fg_color=COLOR_FONDO_LISTA, corner_radius=15)
@@ -2071,20 +2250,26 @@ class ReportsPage(ctk.CTkFrame):
             # Encabezados
             headers = ["No. FACTURA", "NIT CLIENTE", "MONTO", "FECHA", "EMPRESA"]
             for i, header in enumerate(headers):
-                ctk.CTkLabel(table_frame, text=header,font=ctk.CTkFont(size=14, weight="bold"),text_color="black").grid(row=0, column=i, padx=5, pady=5, sticky="w")
+                ctk.CTkLabel(table_frame, text=header, font=ctk.CTkFont(size=14, weight="bold"),
+                             text_color="black").grid(row=0, column=i, padx=5, pady=5, sticky="w")
 
             # Datos
             for i, factura in enumerate(data, 1):
                 ctk.CTkLabel(table_frame, text=factura.get('no_factura', ''),
-                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=0, padx=5, pady=2,sticky="w")
+                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=0, padx=5, pady=2,
+                                                                                 sticky="w")
                 ctk.CTkLabel(table_frame, text=factura.get('nit_cliente', ''),
-                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=1, padx=5, pady=2,sticky="w")
+                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=1, padx=5, pady=2,
+                                                                                 sticky="w")
                 ctk.CTkLabel(table_frame, text=f"Q {float(factura.get('monto', 0)):.2f}",
-                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=2, padx=5, pady=2,sticky="w")
+                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=2, padx=5, pady=2,
+                                                                                 sticky="w")
                 ctk.CTkLabel(table_frame, text=str(factura.get('fecha', '')),
-                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=3, padx=5, pady=2,sticky="w")
+                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=3, padx=5, pady=2,
+                                                                                 sticky="w")
                 ctk.CTkLabel(table_frame, text=factura.get('empresa_nombre', ''),
-                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=4, padx=5, pady=2,sticky="w")
+                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=4, padx=5, pady=2,
+                                                                                 sticky="w")
         except Exception as e:
             self.mostrar_error(str(e))
 
@@ -2133,10 +2318,12 @@ class ReportsPage(ctk.CTkFrame):
             # Total cancelado
             ctk.CTkLabel(table_frame, text="TOTAL CANCELADO:",
                          font=ctk.CTkFont(size=14, weight="bold"),
-                         text_color=COLOR_TEXTO_ETIQUETA).grid(row=len(data) + 1, column=1, padx=10, pady=10,sticky="e")
+                         text_color=COLOR_TEXTO_ETIQUETA).grid(row=len(data) + 1, column=1, padx=10, pady=10,
+                                                               sticky="e")
             ctk.CTkLabel(table_frame, text=f"Q {total_cancelado:.2f}",
                          font=ctk.CTkFont(size=14, weight="bold"),
-                         text_color=COLOR_TEXTO_ETIQUETA).grid(row=len(data) + 1, column=2, padx=10, pady=10,sticky="w")
+                         text_color=COLOR_TEXTO_ETIQUETA).grid(row=len(data) + 1, column=2, padx=10, pady=10,
+                                                               sticky="w")
 
         except Exception as e:
             ctk.CTkLabel(self.report_frame, text=f"Error: {str(e)}",
@@ -2146,7 +2333,8 @@ class ReportsPage(ctk.CTkFrame):
         try:
             data = Proyecto_2.Reporte.total_ventas_empresa(self.company_name)
             if not data:
-                ctk.CTkLabel(self.report_frame, text="No hay datos de ventas",font=ctk.CTkFont(size=14), text_color=COLOR_TEXTO_ETIQUETA).pack(pady=20)
+                ctk.CTkLabel(self.report_frame, text="No hay datos de ventas", font=ctk.CTkFont(size=14),
+                             text_color=COLOR_TEXTO_ETIQUETA).pack(pady=20)
                 return
 
             info_frame = ctk.CTkFrame(self.report_frame, fg_color=COLOR_FILA_CLARA, corner_radius=10)
@@ -2166,7 +2354,8 @@ class ReportsPage(ctk.CTkFrame):
                              text_color=COLOR_MORADO_OSCURO).pack(pady=10)
 
         except Exception as e:
-            ctk.CTkLabel(self.report_frame, text=f"Error: {str(e)}",font=ctk.CTkFont(size=14), text_color="red").pack(pady=20)
+            ctk.CTkLabel(self.report_frame, text=f"Error: {str(e)}", font=ctk.CTkFont(size=14), text_color="red").pack(
+                pady=20)
 
     def mostrar_ventas_por_mes(self):
         """Muestra reporte detallado de ventas por mes"""
@@ -2174,7 +2363,8 @@ class ReportsPage(ctk.CTkFrame):
             data = Proyecto_2.Reporte.facturas_por_mes(self.company_name, self.año_seleccionado)
 
             if not data:
-                ctk.CTkLabel(self.report_frame, text="No hay datos de ventas por mes",font=ctk.CTkFont(size=14), text_color=COLOR_TEXTO_ETIQUETA).pack(pady=20)
+                ctk.CTkLabel(self.report_frame, text="No hay datos de ventas por mes", font=ctk.CTkFont(size=14),
+                             text_color=COLOR_TEXTO_ETIQUETA).pack(pady=20)
                 return
 
             # Crear tabla
@@ -2205,18 +2395,23 @@ class ReportsPage(ctk.CTkFrame):
                 facturas_totales += cantidad_facturas
 
                 ctk.CTkLabel(table_frame, text=mes_nombre,
-                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=0, padx=10, pady=3,sticky="w")
+                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=0, padx=10, pady=3,
+                                                                                 sticky="w")
                 ctk.CTkLabel(table_frame, text=str(cantidad_facturas),
-                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=1, padx=10, pady=3,sticky="w")
+                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=1, padx=10, pady=3,
+                                                                                 sticky="w")
                 ctk.CTkLabel(table_frame, text=f"Q {ventas_mes:.2f}",
-                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=2, padx=10, pady=3,sticky="w")
+                             font=ctk.CTkFont(size=12), text_color="black").grid(row=i, column=2, padx=10, pady=3,
+                                                                                 sticky="w")
 
             resumen_frame = ctk.CTkFrame(self.report_frame, fg_color=COLOR_FILA_CLARA, corner_radius=10)
             resumen_frame.pack(fill="x", padx=50, pady=20)
 
-            ctk.CTkLabel(resumen_frame, text="RESUMEN ANUAL", font=ctk.CTkFont(size=16, weight="bold"),text_color=COLOR_TEXTO_TABLA).pack(pady=10)
+            ctk.CTkLabel(resumen_frame, text="RESUMEN ANUAL", font=ctk.CTkFont(size=16, weight="bold"),
+                         text_color=COLOR_TEXTO_TABLA).pack(pady=10)
 
-            ctk.CTkLabel(resumen_frame, text=f"Total Facturas: {facturas_totales}",font=ctk.CTkFont(size=14),text_color=COLOR_TEXTO_TABLA).pack(pady=2)
+            ctk.CTkLabel(resumen_frame, text=f"Total Facturas: {facturas_totales}", font=ctk.CTkFont(size=14),
+                         text_color=COLOR_TEXTO_TABLA).pack(pady=2)
 
             ctk.CTkLabel(resumen_frame, text=f"Ventas Totales: Q {ventas_totales:.2f}",
                          font=ctk.CTkFont(size=14),
@@ -2224,6 +2419,16 @@ class ReportsPage(ctk.CTkFrame):
         except Exception as e:
             ctk.CTkLabel(self.report_frame, text=f"Error: {str(e)}",
                          font=ctk.CTkFont(size=14), text_color="red").pack(pady=20)
+
+    def mostrar_sin_datos(self):
+        ctk.CTkLabel(self.report_frame, text="No hay datos disponibles",
+                     font=ctk.CTkFont(size=16), text_color=COLOR_TEXTO_ETIQUETA).pack(pady=50)
+
+    def mostrar_error(self, mensaje):
+        ctk.CTkLabel(self.report_frame, text=f"Error: {mensaje}",
+                     font=ctk.CTkFont(size=14), text_color="red").pack(pady=20)
+
+
 class CreateInvoicePage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
@@ -2253,16 +2458,21 @@ class CreateInvoicePage(ctk.CTkFrame):
                      justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
 
         ctk.CTkLabel(left_frame, text=f"Aquí puedes registrar una nueva factura de {company_name}.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=2,column=0,sticky="nw")
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=2,
+                                                                                                          column=0,
+                                                                                                          sticky="nw")
 
         ctk.CTkLabel(left_frame, text="—",
                      font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
                      justify="left").grid(row=3, column=0, sticky="nw", pady=5)
 
         ctk.CTkLabel(left_frame, text="Selecciona productos del inventario disponible.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=4,column=0, sticky="nw")
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=4,
+                                                                                                          column=0,
+                                                                                                          sticky="nw")
         ctk.CTkLabel(left_frame, text="El inventario se actualizará automáticamente.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=5,sticky="nw")
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=5,
+                                                                                                          sticky="nw")
 
         ctk.CTkButton(left_frame, text="Regresar",
                       command=lambda: self.controller.nav_action("REGRESAR A EMPRESA"),
@@ -2275,7 +2485,7 @@ class CreateInvoicePage(ctk.CTkFrame):
         right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
 
-        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,fg_color=COLOR_FORM_FRAME, width=450)
+        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30, fg_color=COLOR_FORM_FRAME, width=450)
         form_frame.pack(expand=False, fill="y", side="right")
 
         ctk.CTkLabel(form_frame, text="Factura",
@@ -2294,7 +2504,8 @@ class CreateInvoicePage(ctk.CTkFrame):
                 entry = ctk.CTkEntry(form_frame, placeholder_text="YYYY-MM-DD", height=40,
                                      corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
             else:
-                entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
+                entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40, corner_radius=10,
+                                     fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
             entry.pack(fill="x", padx=40)
             self.entries[field] = entry
 
@@ -2318,7 +2529,8 @@ class CreateInvoicePage(ctk.CTkFrame):
         self.producto_combobox.pack(fill="x", pady=(5, 10))
         self.producto_combobox.set("Seleccione un producto")
         # Información del producto seleccionado
-        self.producto_info_label = ctk.CTkLabel(product_selection_frame,text="Stock: - | Precio: Q -",font=ctk.CTkFont(size=11),text_color="yellow")
+        self.producto_info_label = ctk.CTkLabel(product_selection_frame, text="Stock: - | Precio: Q -",
+                                                font=ctk.CTkFont(size=11), text_color="yellow")
         self.producto_info_label.pack(anchor="w", pady=(0, 10))
 
         # Frame para cantidad
@@ -2360,7 +2572,8 @@ class CreateInvoicePage(ctk.CTkFrame):
                       hover_color="#8B0000").pack(pady=(0, 20))
 
         # Total de la factura
-        self.total_label = ctk.CTkLabel(form_frame,text="TOTAL: Q 0.00",font=ctk.CTkFont(size=18, weight="bold"),text_color="yellow")
+        self.total_label = ctk.CTkLabel(form_frame, text="TOTAL: Q 0.00", font=ctk.CTkFont(size=18, weight="bold"),
+                                        text_color="yellow")
         self.total_label.pack(pady=(10, 20))
         ctk.CTkButton(form_frame, text="REGISTRAR\nFACTURA",
                       command=self.register_invoice_action,
@@ -2392,6 +2605,7 @@ class CreateInvoicePage(ctk.CTkFrame):
             self.producto_combobox.set("Seleccione un producto")
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar productos: {str(e)}")
+
     def actualizar_info_producto(self, event=None):
         """Actualiza la información del producto seleccionado"""
         producto_seleccionado = self.producto_combobox.get()
@@ -2420,9 +2634,10 @@ class CreateInvoicePage(ctk.CTkFrame):
                             text=f"Stock: {stock} | Precio: Q {precio:.2f} | Subtotal: Q {subtotal:.2f}",
                             text_color="yellow")
                 except ValueError:
-                    self.producto_info_label.configure(text=f"Stock: {stock} | Precio: Q {precio:.2f}",text_color="yellow")
+                    self.producto_info_label.configure(text=f"Stock: {stock} | Precio: Q {precio:.2f}",
+                                                       text_color="yellow")
             else:
-                self.producto_info_label.configure(text=f"Stock: {stock} | Precio: Q {precio:.2f}",text_color="yellow")
+                self.producto_info_label.configure(text=f"Stock: {stock} | Precio: Q {precio:.2f}", text_color="yellow")
 
     def agregar_producto_action(self):
         producto_seleccionado = self.producto_combobox.get()
@@ -2441,7 +2656,8 @@ class CreateInvoicePage(ctk.CTkFrame):
                 return
             nombre_producto = producto_seleccionado.split(" (Stock: ")[0]
             # Busca información del producto
-            producto_info = next((prod for prod in self.productos_disponibles if prod['producto'] == nombre_producto),None)
+            producto_info = next((prod for prod in self.productos_disponibles if prod['producto'] == nombre_producto),
+                                 None)
 
             if not producto_info:
                 messagebox.showerror("Error", "Producto no encontrado")
@@ -2522,7 +2738,8 @@ class CreateInvoicePage(ctk.CTkFrame):
             success = factura.guardar(empresa_nombre)
 
             if success:
-                messagebox.showinfo("Éxito",f"Factura {numero_factura} registrada correctamente\n"f"Inventario actualizado automáticamente\n"f"Total: Q {monto_total:.2f}")
+                messagebox.showinfo("Éxito",
+                                    f"Factura {numero_factura} registrada correctamente\n"f"Inventario actualizado automáticamente\n"f"Total: Q {monto_total:.2f}")
                 for entry in self.entries.values():
                     entry.delete(0, tk.END)
                 self.productos_listbox.delete(0, tk.END)

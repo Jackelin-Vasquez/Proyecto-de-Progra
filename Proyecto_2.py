@@ -1012,18 +1012,19 @@ class Inventario:
             conn = BasedeDatos.conectar()
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT cantidad FROM inventario_general 
+                SELECT cantidad, precio FROM inventario_general 
                 WHERE empresa_nombre = %s AND producto = %s""",
                            (self._empresa_nombre, self._producto))
             existente = cursor.fetchone()
 
             if existente:
-                # Actualizar cantidad existente
+                # Actualizar cantidad existente sumando la nueva cantidad
+                nueva_cantidad = existente[0] + self._cantidad
                 cursor.execute("""
                     UPDATE inventario_general 
-                    SET cantidad = cantidad + %s, precio = %s 
+                    SET cantidad = %s, precio = %s 
                     WHERE empresa_nombre = %s AND producto = %s""",
-                               (self._cantidad, self._precio, self._empresa_nombre, self._producto))
+                               (nueva_cantidad, self._precio, self._empresa_nombre, self._producto))
             else:
                 # Insertar nuevo producto
                 cursor.execute("""
