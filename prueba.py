@@ -957,39 +957,77 @@ class TableBasePage(ctk.CTkFrame):
             menu.grab_release()
 
     def _ordenar_por_campo(self, campo):
-        """Ordena por un campo específico usando el método actual"""
+        """Ordena por un campo específico usando el método actual CORREGIDO"""
         self.campo_busqueda = campo
+
+        # Mapear nombres de campos de visualización a campos de datos reales
+        campo_mapeo = self._mapear_campo_ordenamiento(campo)
+        self.campo_busqueda = campo_mapeo
+
         self._aplicar_ordenamiento(self.metodo_ordenamiento)
 
+    def _mapear_campo_ordenamiento(self, campo_visual):
+        """Mapea nombres de columnas de tabla a campos reales en los datos"""
+        mapeo = {
+            # Para usuarios
+            "Nombre": "Nombre",
+            "Usuario": "Usuario",
+            "ROL": "ROL",
+            "Puesto": "Puesto",
+            # Para empresas
+            "Nombre": "Nombre",
+            "NIT": "NIT",
+            "DIRECCIÓN": "DIRECCIÓN",
+            # Para inventario
+            "PRODUCTO": "Nombre",
+            "Cantidad": "Cantidad",
+            "Precio": "Precio"
+        }
+        return mapeo.get(campo_visual, "Nombre")
+
+    def _adaptar_datos_para_ordenamiento(self, datos, campo_ordenar):
+        """Convierte lista de diccionarios a lista de tuplas para ordenamiento"""
+        datos_adaptados = []
+        for item in datos:
+            valor_ordenar = item.get(campo_ordenar, '')
+            # Para ordenamiento numérico si el campo es Cantidad o Precio
+            if campo_ordenar in ["Cantidad", "Precio"]:
+                try:
+                    valor_ordenar = float(valor_ordenar) if valor_ordenar else 0.0
+                except ValueError:
+                    valor_ordenar = 0.0
+            datos_adaptados.append((valor_ordenar, item))
+        return datos_adaptados
+
     def _aplicar_ordenamiento(self, metodo):
-        """Aplica el método de ordenamiento seleccionado"""
+        """Aplica el método de ordenamiento seleccionado CORREGIDO"""
         self.metodo_ordenamiento = metodo
         self.ordenar_btn.configure(text=f"Ordenar ({metodo}) ▾")
 
-        # Determinar índice del campo
-        campos = self._get_columns()
-        try:
-            indice = campos.index(self.campo_busqueda)
-        except ValueError:
-            indice = 1  # Por defecto segundo campo (generalmente Nombre)
+        if not self.datos_filtrados:
+            return
+
+        # Adaptar datos para ordenamiento
+        datos_para_ordenar = self._adaptar_datos_para_ordenamiento(
+            self.datos_filtrados, self.campo_busqueda
+        )
 
         # Aplicar ordenamiento usando los métodos de Proyecto_2
+        # Los métodos ahora reciben lista de tuplas (valor, diccionario)
         if metodo == "bubble":
-            resultados = Proyecto_2.metodo_bubble_sort(self.datos_filtrados, indice)
+            resultados = Proyecto_2.metodo_bubble_sort(datos_para_ordenar, 0)  # Índice 0 = valor
         elif metodo == "quick":
-            resultados = Proyecto_2.metodo_quick_sort(self.datos_filtrados, indice)
+            resultados = Proyecto_2.metodo_quick_sort(datos_para_ordenar, 0)
         elif metodo == "selection":
-            resultados = Proyecto_2.metodo_selection_sort(self.datos_filtrados, indice)
+            resultados = Proyecto_2.metodo_selection_sort(datos_para_ordenar, 0)
         else:
-            resultados = self.datos_filtrados
+            resultados = datos_para_ordenar
 
-        # Extraer solo los items de las tuplas (indice, item)
-        if resultados and isinstance(resultados[0], tuple):
-            self.datos_filtrados = [item for _, item in resultados]
-        else:
-            self.datos_filtrados = resultados
+        #  CORREGIDO: Extraer solo los diccionarios originales en orden
+        self.datos_filtrados = [item[1] for item in resultados]
 
         self._actualizar_tabla()
+
 
     def _adaptar_busqueda_binaria(self, lista, campo, valor):
         if not lista:
