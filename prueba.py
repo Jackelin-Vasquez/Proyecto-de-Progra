@@ -34,9 +34,9 @@ COLOR_TEXTO_ETIQUETA = TEXT_DARK_GRAY
 COLOR_BOTON_PRIMARIO = PURPLE_BRIGHT
 COLOR_BOTON_BUSQUEDA = MAGENTA_SAVE
 
-PATH_BG = "fondo_degradado.png"
-PATH_LOGO = "snoopy_admin.png"
-PATH_FROG = "snoopy_admin.png"
+PATH_BG = "fondologincompe.png"
+PATH_LOGO = "fondologincompe.png"
+PATH_FROG = "fondologincompe.png.png"
 
 
 def create_default_image(width, height, color1, color2, text=""):
@@ -107,7 +107,7 @@ class App(ctk.CTk):
         self.user_role = None
         self.selected_company = None
 
-        self.title("LOGIAIPO - Sistema de Gestión Contable")
+        self.title("- Sistema de Gestión Contable")
         self.geometry("1200x800")
         self.minsize(1000, 600)
 
@@ -2933,7 +2933,7 @@ class DashboardPage(ctk.CTkFrame):
         self.sidebar_frame.grid_rowconfigure(1, weight=1)
 
         # Logo
-        ctk.CTkLabel(self.sidebar_frame, text="LOGIAIPO",
+        ctk.CTkLabel(self.sidebar_frame, text="CONTABILIDAD EMPRESARIAL V.G.",
                      font=ctk.CTkFont(size=20, weight="bold"),
                      text_color="white").grid(row=0, column=0, padx=20, pady=(20, 0), sticky="w")
 
@@ -3120,7 +3120,7 @@ class DashboardPage(ctk.CTkFrame):
         default_frame.grid(row=0, column=0, sticky="nsew")
 
         user_role = self.controller.user_role if self.controller.user_role else "USUARIO"
-        welcome_text = f"Bienvenido al sistema LOGIAIPO\nRol: {user_role.upper()}"
+        welcome_text = f"Bienvenido al sistema de CONTABILIDAD EMPRESARIAL V.G.\nRol: {user_role.upper()}"
         ctk.CTkLabel(default_frame, text=welcome_text,
                      font=ctk.CTkFont(size=24, weight="bold"),
                      text_color=TEXT_LIGHT_GRAY).pack(pady=100)
