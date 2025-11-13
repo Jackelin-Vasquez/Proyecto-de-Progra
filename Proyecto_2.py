@@ -65,8 +65,8 @@ class BasedeDatos:
         conn = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="Wilson200.",
-            database="proyecto_final",
+            password="rufisbb7",
+            database="prueba2",
             port=3306
         )
         return conn
