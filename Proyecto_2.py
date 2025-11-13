@@ -17,7 +17,7 @@ def busqueda_binaria(lista, indice, valor):
             inicio = medio + 1
         else:
             fin = medio - 1
-    return -1
+    return -1 #comentario para un commit
 
 def busqueda_secuencial(lista, indice, valor):
     for x in lista:
