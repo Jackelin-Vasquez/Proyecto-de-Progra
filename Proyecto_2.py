@@ -1,5 +1,7 @@
 import mysql.connector
+import hashlib
 from datetime import date
+from mysql.connector import Error
 
 DB_Sistema = "sistema_empresa.db"
 
@@ -70,18 +72,28 @@ class BasedeDatos:
             port=3306
         )
         return conn
+
+def hash_password(password):
+    """Función para hashear contraseñas"""
+    if not password:
+        return None
+    return hashlib.sha256(password.encode()).hexdigest()
+
 # Clase base
 class Usuario:
-    def __init__(self,nombre,dpi,correo,puesto,usuario,contrasena,rol):
-        self.__nombre= nombre
-        self.__dpi= dpi
-        self._correo= correo
-        self._puesto= puesto
-        self.__usuario= usuario
-        self.__contrasena= contrasena
-        self._rol= rol
+    def __init__(self, nombre, dpi, correo, puesto, usuario, contrasena, rol):
+        self.__nombre = nombre
+        self.__dpi = dpi
+        self._correo = correo
+        self._puesto = puesto
+        self.__usuario = usuario
+        # Hashing de la contraseña al inicializar
+        self.__contrasena = hash_password(contrasena)
+        self._rol = rol
         Usuario._conn()
 
+    # ... (Propiedades y métodos como _conn, puesto, correo, rol, mostrar_info se mantienen igual) ...
+    # (El método _conn se mantiene igual)
     @staticmethod
     def _conn():
         cursor = None
@@ -120,8 +132,9 @@ class Usuario:
     @property
     def correo(self):
         return self._correo
+
     @correo.setter
-    def correo(self,correo_nuevo):
+    def correo(self, correo_nuevo):
         if "@" in correo_nuevo:
             self._correo = correo_nuevo
         else:
@@ -141,6 +154,8 @@ class Usuario:
             if cursor.fetchone():
                 print(f"Usuario {self.__usuario} ya existe.")
                 return False
+
+            # NOTA: La contraseña ya está hasheada desde __init__
             cursor.execute("""INSERT INTO usuarios (nombre, dpi, correo, puesto, usuario, contrasena, rol) VALUES (%s,%s,%s,%s,%s,%s,%s)
             """, (self.__nombre, self.__dpi, self._correo, self._puesto, self.__usuario, self.__contrasena, self._rol))
             conn.commit()
@@ -160,12 +175,13 @@ class Usuario:
 
     @staticmethod
     def listar_todos():
+        # (El código de listar_todos se mantiene igual)
         conn = None
         cursor = None
         try:
             conn = BasedeDatos.conectar()
             cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT id, nombre, usuario, rol, puesto FROM usuarios")
+            cursor.execute("SELECT id, nombre, dpi, correo, puesto, usuario, rol FROM usuarios")
             usuarios = cursor.fetchall()
             return usuarios
         except mysql.connector.Error as e:
@@ -179,6 +195,7 @@ class Usuario:
 
     @staticmethod
     def eliminar(usuario):
+        # (El código de eliminar se mantiene igual)
         conn = None
         cursor = None
         try:
@@ -205,41 +222,68 @@ class Usuario:
             if conn:
                 conn.close()
 
-    def actualizar_usuario(usuario_actual, nuevo_dpi, nuevo_nombre, nuevo_correo, nuevo_puesto, nuevo_usuario,nueva_contrasena, nuevo_rol):
+    @staticmethod  # <-- ¡CORREGIDO! Faltaba este decorador para poder llamarlo desde el frontend.
+    def actualizar_usuario(usuario_actual, nuevo_dpi, nuevo_nombre, nuevo_correo, nuevo_puesto, nuevo_usuario,
+                           nueva_contrasena, nuevo_rol):
         conn = None
         cursor = None
         try:
             conn = BasedeDatos.conectar()
             cursor = conn.cursor()
-            # Verificamos si el usuario existe
+
+            # 1. Validación de existencia del usuario a editar
             cursor.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario_actual,))
             if not cursor.fetchone():
                 print(f"Usuario {usuario_actual} no existe.")
                 return False
-            # Verificamos si el nuevo nombre de usuario ya existe
+
+            # 2. Validación de usuario duplicado (si el nombre de usuario está cambiando)
             if usuario_actual != nuevo_usuario:
                 cursor.execute("SELECT * FROM usuarios WHERE usuario=%s", (nuevo_usuario,))
                 if cursor.fetchone():
                     print(f"El usuario {nuevo_usuario} ya existe.")
                     return False
 
-            # Ya podemos actulizar el usuario
-            if nueva_contrasena:  # Si se proporciona nueva contraseña
-                cursor.execute("""
-                    UPDATE usuarios 
-                    SET nombre=%s, dpi=%s, correo=%s, puesto=%s, usuario=%s, contrasena=%s, rol=%s 
-                    WHERE usuario=%s""", (nuevo_nombre, nuevo_dpi, nuevo_correo, nuevo_puesto, nuevo_usuario, nueva_contrasena, nuevo_rol,usuario_actual))
-            else:  # Mantener la contraseña actual
-                cursor.execute("""
-                    UPDATE usuarios 
-                    SET nombre=%s, dpi=%s, correo=%s, puesto=%s, usuario=%s, rol=%s 
-                    WHERE usuario=%s""", (nuevo_nombre, nuevo_dpi, nuevo_correo, nuevo_puesto, nuevo_usuario, nuevo_rol, usuario_actual))
+            # 3. Construcción dinámica del comando UPDATE
+
+            # 3.1. Campos a actualizar
+            set_clauses = [
+                "nombre=%s",
+                "dpi=%s",
+                "correo=%s",
+                "puesto=%s",
+                "usuario=%s",
+                "rol=%s"
+            ]
+            params = [
+                nuevo_nombre, nuevo_dpi, nuevo_correo, nuevo_puesto, nuevo_usuario, nuevo_rol
+            ]
+
+            # 3.2. Manejo de Contraseña
+            if nueva_contrasena:
+                # Si hay nueva contraseña, la hasheamos y la agregamos a la actualización
+                hashed_contrasena = hash_password(nueva_contrasena)  # <-- ¡CORREGIDO! Aplicar hashing
+                set_clauses.append("contrasena=%s")
+                params.append(hashed_contrasena)
+
+            # 3.3. Cláusula WHERE (Identificador)
+            sql_update = f"""
+                UPDATE usuarios 
+                SET {', '.join(set_clauses)}
+                WHERE USUARIO=%s
+            """
+            params.append(usuario_actual)
+
+            # 4. Ejecutar y confirmar
+            cursor.execute(sql_update, tuple(params))
             conn.commit()
-            print(f"Usuario {usuario_actual} actualizado correctamente.")
+            print(f"Usuario {usuario_actual} actualizado correctamente. Filas afectadas: {cursor.rowcount}")
             return True
 
         except mysql.connector.Error as e:
             print(f"Error al actualizar usuario: {e}")
+            if conn:
+                conn.rollback()
             return False
         finally:
             if cursor:
@@ -247,6 +291,8 @@ class Usuario:
             if conn:
                 conn.close()
 
+
+# Reportes, facturas, inventario se mantienen.
 reportes = {}
 facturas = {}
 inventario = {}

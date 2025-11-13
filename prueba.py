@@ -1344,12 +1344,12 @@ class EditUserDialog(ctk.CTkToplevel):
         """Carga los datos actuales del usuario en los campos"""
         # Mapeo de campos del formulario a campos de la base de datos
         field_mapping = {
-            'DPI': 'dpi',
-            'NOMBRE_COMPLETO': 'nombre',
-            'CORREO': 'correo',
-            'PUESTO': 'puesto',
-            'USUARIO': 'usuario',
-            'ROL': 'rol'
+            'dpi': 'dpi',
+            'nombre': 'nombre',
+            'correo': 'correo',
+            'puesto': 'puesto',
+            'usuario': 'usuario',
+            'rol': 'rol'
         }
 
         for field_key, data_key in field_mapping.items():
@@ -1386,10 +1386,14 @@ class EditUserDialog(ctk.CTkToplevel):
                 return
 
             # Obtener el usuario actual para la actualización
-            usuario_actual = self.user_data.get('usuario', '')
+            usuario_actual = self.user_data.get('usuario') or self.user_data.get('USUARIO') or self.user_data.get(
+                'Usuario')
             if not usuario_actual:
-                messagebox.showerror("Error", "No se pudo identificar el usuario a actualizar")
+                messagebox.showerror("Error",
+                                     f"No se pudo identificar el usuario a actualizar. Datos: {self.user_data}")
                 return
+
+            print(f"Actualizando usuario: {usuario_actual} -> {usuario}")  # Debug
 
             # Llamar al método de actualización de la clase Usuario
             success = Proyecto_2.Usuario.actualizar_usuario(
