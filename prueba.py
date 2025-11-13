@@ -1247,22 +1247,31 @@ class ModifyUsersPage(TableBasePage):
             self.datos_originales = self._load_users_from_db()
             self.datos_filtrados = self.datos_originales.copy()
             self._actualizar_tabla()
-
-
+#-----------------------------------------------------------------------------------------------------------------------------------------------------
 class EditUserDialog(ctk.CTkToplevel):
     def __init__(self, parent, user_data):
         super().__init__(parent)
         self.title("Editar Usuario")
-        self.geometry("400x830")
-        self.resizable(False, False)
+        self.geometry("450x500")
+        self.resizable(False, True)
+
+        # Hacer que la ventana se abra por delante
+        self.lift()  # Traer al frente
+        self.focus_force()  # Forzar el foco
+        self.grab_set()  # Hacerla modal (capturar todos los eventos)
 
         self.user_data = user_data
         self.result = None
 
-        main_frame = ctk.CTkFrame(self, fg_color=PURPLE_BRIGHT, corner_radius=15)
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        # Frame principal con scroll
+        main_container = ctk.CTkFrame(self, fg_color="transparent")
+        main_container.pack(fill="both", expand=True, padx=10, pady=10)
 
-        ctk.CTkLabel(main_frame, text="EDITAR USUARIO",
+        # Frame scrollable
+        self.scrollable_frame = ctk.CTkScrollableFrame(main_container, fg_color=PURPLE_BRIGHT, corner_radius=15)
+        self.scrollable_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
+        ctk.CTkLabel(self.scrollable_frame, text="EDITAR USUARIO",
                      font=ctk.CTkFont(size=20, weight="bold"),
                      text_color="white").pack(pady=(20, 30))
 
@@ -1279,21 +1288,30 @@ class EditUserDialog(ctk.CTkToplevel):
 
         self.entries = {}
         for field_label, field_key in fields:
-            ctk.CTkLabel(main_frame, text=field_label,
-                         font=ctk.CTkFont(size=12, weight="normal"),
-                         text_color="white", anchor="w").pack(fill="x", padx=40, pady=(10, 0))
+            # Frame para cada campo
+            field_frame = ctk.CTkFrame(self.scrollable_frame, fg_color="transparent")
+            field_frame.pack(fill="x", padx=40, pady=(5, 0))
 
-            entry = ctk.CTkEntry(main_frame, placeholder_text="", height=35,
+            ctk.CTkLabel(field_frame, text=field_label,
+                         font=ctk.CTkFont(size=12, weight="normal"),
+                         text_color="white", anchor="w").pack(fill="x", pady=(0, 5))
+
+            entry = ctk.CTkEntry(field_frame, placeholder_text="", height=35,
                                  corner_radius=10, fg_color=PURPLE_ENTRY,
-                                 border_width=0, text_color="white", placeholder_text_color="white")
-            entry.pack(fill="x", padx=40, pady=(5, 10))
+                                 border_width=0, text_color="white",
+                                 placeholder_text_color="white")
+            entry.pack(fill="x", pady=(0, 10))
             self.entries[field_key] = entry
 
         # Cargar datos actuales del usuario
         self._load_current_user_data()
 
-        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-        button_frame.pack(fill="x", padx=40, pady=20)
+        # Frame para botones (fuera del scrollable frame para que sean siempre visibles)
+        button_container = ctk.CTkFrame(main_container, fg_color="transparent")
+        button_container.pack(fill="x", padx=20, pady=(10, 5))
+
+        button_frame = ctk.CTkFrame(button_container, fg_color="transparent")
+        button_frame.pack(fill="x")
         button_frame.grid_columnconfigure(0, weight=1)
         button_frame.grid_columnconfigure(1, weight=1)
 
@@ -1308,6 +1326,19 @@ class EditUserDialog(ctk.CTkToplevel):
                       width=120, height=40, corner_radius=10,
                       fg_color=MAGENTA_SAVE,
                       hover_color="#C42A63").grid(row=0, column=1, padx=(10, 0), sticky="e")
+
+        # Ajustar el tamaño mínimo para mejor visualización
+        self.minsize(450, 400)
+
+        # Asegurar que esté al frente después de que todos los widgets estén creados
+        self.after(100, self._ensure_front)
+
+    def _ensure_front(self):
+        """Asegura que la ventana esté al frente"""
+        self.lift()
+        self.focus_force()
+        self.attributes('-topmost', True)
+        self.after(100, lambda: self.attributes('-topmost', False))
 
     def _load_current_user_data(self):
         """Carga los datos actuales del usuario en los campos"""
@@ -1327,9 +1358,15 @@ class EditUserDialog(ctk.CTkToplevel):
                 current_value = str(self.user_data[data_key]) if self.user_data[data_key] else ""
                 self.entries[field_key].insert(0, current_value)
 
+        # Para el campo de contraseña, dejarlo vacío por seguridad
+        self.entries["CONTRASEÑA"].insert(0, "")
+        # Agregar placeholder para indicar que es opcional
+        self.entries["CONTRASEÑA"].configure(placeholder_text="Dejar vacío para mantener actual")
+
     def save_changes(self):
-        """Guarda los cambios del usuario en la base de datos"""
+        """Guarda los cambios del usuario en la base de datos llamando al método correspondiente"""
         try:
+            # Obtener datos de los campos
             dpi = self.entries["DPI"].get().strip()
             nombre = self.entries["NOMBRE_COMPLETO"].get().strip()
             correo = self.entries["CORREO"].get().strip()
@@ -1338,18 +1375,23 @@ class EditUserDialog(ctk.CTkToplevel):
             contrasena = self.entries["CONTRASEÑA"].get().strip()
             rol = self.entries["ROL"].get().strip()
 
+            # Validar campos obligatorios
             if not all([dpi, nombre, usuario, rol]):
                 messagebox.showerror("Error", "Por favor complete los campos obligatorios: DPI, Nombre, Usuario y Rol")
                 return
 
+            # Validar formato de correo
+            if correo and "@" not in correo:
+                messagebox.showerror("Error", "Por favor ingrese un correo electrónico válido")
+                return
+
             # Obtener el usuario actual para la actualización
             usuario_actual = self.user_data.get('usuario', '')
-
             if not usuario_actual:
                 messagebox.showerror("Error", "No se pudo identificar el usuario a actualizar")
                 return
 
-            # Llamar al método de actualización
+            # Llamar al método de actualización de la clase Usuario
             success = Proyecto_2.Usuario.actualizar_usuario(
                 usuario_actual=usuario_actual,
                 nuevo_dpi=dpi,
@@ -1369,7 +1411,6 @@ class EditUserDialog(ctk.CTkToplevel):
                     'correo': correo,
                     'puesto': puesto,
                     'usuario': usuario,
-                    'contrasena': contrasena,
                     'rol': rol
                 }
                 self.destroy()
@@ -1378,7 +1419,7 @@ class EditUserDialog(ctk.CTkToplevel):
 
         except Exception as e:
             messagebox.showerror("Error", f"Error al guardar cambios: {str(e)}")
-
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class EditCompanyDialog(ctk.CTkToplevel):
     def __init__(self, parent, company_data):
