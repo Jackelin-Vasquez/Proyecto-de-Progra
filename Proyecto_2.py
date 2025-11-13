@@ -3,7 +3,7 @@ import hashlib
 from datetime import date
 from mysql.connector import Error
 
-DB_Sistema = "sistema_empresa.db"
+DB_Sistema = "sistema_empresa.db" #declarando Bd
 
 # Métodos de Búsqueda
 def busqueda_binaria(lista, indice, valor):
